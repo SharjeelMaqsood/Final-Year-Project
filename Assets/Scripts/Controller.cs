@@ -11,7 +11,10 @@ public class Controller : MonoBehaviour
     [SerializeField] private float groundCheckDistance = 0.2f;
 
     [Header("References")]
-    [SerializeField] private LayerMask groundLayer = ~0; // Everything by default
+    [SerializeField] private LayerMask groundLayer = ~0;
+    [SerializeField] private Transform cameraTransform;
+    [SerializeField] private CameraSwitcher cameraSwitcher;
+
     [Header("Rotation")]
     [SerializeField] private float rotationSpeed = 10f;
 
@@ -22,7 +25,6 @@ public class Controller : MonoBehaviour
     private float currentSpeed;
     private float verticalVelocity;
 
-    // Public properties for animation
     public float CurrentSpeed => currentSpeed;
     public Vector2 MoveInput => moveInput;
     public bool IsShiftPressed => Keyboard.current.leftShiftKey.isPressed;
@@ -34,62 +36,70 @@ public class Controller : MonoBehaviour
         {
             Debug.LogError("CharacterController component missing!");
         }
+
         currentSpeed = moveSpeed;
     }
 
     private void Update()
     {
-        // Ground check using CharacterController's built-in isGrounded
         isGrounded = characterController.isGrounded;
 
-        // Update speed based on shift key
+        // Speed handling
         if (IsShiftPressed && moveInput.magnitude > 0.1f)
-        {
             currentSpeed = moveSpeed * shiftMultiplier;
+        else
+            currentSpeed = moveSpeed;
+
+        // 🔥 SEPARATED MODES
+        if (cameraSwitcher != null && cameraSwitcher.IsFirstPerson)
+        {
+            HandleFirstPerson();
         }
         else
         {
-            currentSpeed = moveSpeed;
+            HandleThirdPerson();
         }
 
-        // Handle movement
-        HandleMovement();
-
-        // Handle gravity and jumping
         HandleGravity();
-
-        // Handle Rotation
-        HandleRotation();
     }
 
-    private void HandleMovement()
+    // ✅ FIRST PERSON (unchanged logic)
+    private void HandleFirstPerson()
     {
-        float x = moveInput.x;
-        float z = moveInput.y;  
-        Vector3 move = transform.right * x + transform.forward * z;
+        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
 
         characterController.Move(move * currentSpeed * Time.deltaTime);
     }
-    private void HandleGravity()
+
+    // ✅ THIRD PERSON (fixed jitter)
+    private void HandleThirdPerson()
     {
-        if (isGrounded && verticalVelocity < 0)
+        Vector3 camForward = cameraTransform.forward;
+        Vector3 camRight = cameraTransform.right;
+
+        camForward.y = 0f;
+        camRight.y = 0f;
+
+        camForward.Normalize();
+        camRight.Normalize();
+
+        Vector3 move = camRight * moveInput.x + camForward * moveInput.y;
+
+        characterController.Move(move * currentSpeed * Time.deltaTime);
+
+        // 🔥 ROTATION (fixed)
+        if (moveInput.sqrMagnitude > 0.01f)
         {
-            verticalVelocity = -2f; // Small value to keep grounded
-        }
+            Vector3 moveDirection = move;
 
-        // Apply gravity
-        verticalVelocity += gravity * Time.deltaTime;
+            if (moveDirection.sqrMagnitude < 0.01f)
+                return;
 
-        // Apply vertical movement (jumping + gravity)
-        Vector3 verticalMove = new Vector3(0, verticalVelocity, 0);
-        characterController.Move(verticalMove * Time.deltaTime);
-    }
+            // 🔥 Prevent backward jitter
+            float forwardDot = Vector3.Dot(transform.forward, moveDirection.normalized);
 
-    private void HandleRotation()
-    {
-        if (moveInput.magnitude > 0.1f)
-        {
-            Vector3 moveDirection = transform.right * moveInput.x + transform.forward * moveInput.y;
+            if (forwardDot < -0.5f)
+                return;
 
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
 
@@ -100,7 +110,20 @@ public class Controller : MonoBehaviour
             );
         }
     }
-    // Called by PlayerInput
+
+    private void HandleGravity()
+    {
+        if (isGrounded && verticalVelocity < 0)
+        {
+            verticalVelocity = -2f;
+        }
+
+        verticalVelocity += gravity * Time.deltaTime;
+
+        Vector3 verticalMove = new Vector3(0, verticalVelocity, 0);
+        characterController.Move(verticalMove * Time.deltaTime);
+    }
+
     public void OnJump(InputValue value)
     {
         if (value.isPressed && isGrounded)
@@ -114,14 +137,15 @@ public class Controller : MonoBehaviour
         moveInput = value.Get<Vector2>();
     }
 
-    // Optional: Visualize ground check in editor
     private void OnDrawGizmosSelected()
     {
         if (characterController != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position - Vector3.up * characterController.height / 2, groundCheckDistance);
+            Gizmos.DrawWireSphere(
+                transform.position - Vector3.up * characterController.height / 2,
+                groundCheckDistance
+            );
         }
     }
-    
 }

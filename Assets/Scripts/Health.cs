@@ -1,15 +1,27 @@
 using UnityEngine;
 using MagicPigGames;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class Health : MonoBehaviour
 {
+    [Header("Health")]
     public int maxHealth = 100;
     public int currentHealth;
 
-    public ProgressBar progressBar; // Drag Horizontal Progress Bar here
+    [Header("UI")]
+    public GameObject deathUI;
+    public ProgressBar progressBar;
+
+    private CanvasGroup deathCanvasGroup;
+
+    [Header("References")]
+    private PlayerDodge dodge;
+    private Controller controller;
 
     private PlayerInputActions controls;
+
+    private bool isDead = false;
 
     void Awake()
     {
@@ -30,8 +42,16 @@ public class Health : MonoBehaviour
 
     void Start()
     {
+        dodge = GetComponent<PlayerDodge>();
+        controller = GetComponent<Controller>();
+
         currentHealth = maxHealth;
-        UpdateBar(); // initialize bar
+
+        UpdateBar();
+
+        deathCanvasGroup = deathUI.GetComponent<CanvasGroup>();
+        deathCanvasGroup.alpha = 0f;
+        deathUI.SetActive(false);
     }
 
     private void OnDamageTest(InputAction.CallbackContext ctx)
@@ -41,6 +61,15 @@ public class Health : MonoBehaviour
 
     public void ChangeHealth(int amount)
     {
+        if (isDead) return;
+
+        // 🛡️ INVINCIBILITY CHECK
+        if (dodge != null && dodge.isInvincible)
+        {
+            Debug.Log("NO DAMAGE (INVINCIBLE)");
+            return;
+        }
+
         currentHealth = Mathf.Clamp(currentHealth - amount, 0, maxHealth);
 
         Debug.Log("Health: " + currentHealth);
@@ -57,15 +86,38 @@ public class Health : MonoBehaviour
     {
         float percent = (float)currentHealth / maxHealth;
 
-        // If your bar is inverted, keep this:
+        // keep inverted if your bar needs it
         progressBar.SetProgress(1f - percent);
-
-        // If you FIX inversion in inspector, use this instead:
-        // progressBar.SetProgress(percent);
     }
 
     void Die()
     {
-        Debug.Log("Player Died");
+        if (isDead) return;
+
+        isDead = true;
+
+        deathUI.SetActive(true);
+
+        StartCoroutine(FadeInDeathUI());
+
+        if (controller != null)
+            controller.enabled = false;
+    }
+
+    IEnumerator FadeInDeathUI()
+    {
+        float duration = 1.5f;
+        float time = 0f;
+
+        while (time < duration)
+        {
+            time += Time.unscaledDeltaTime;
+            deathCanvasGroup.alpha = time / duration;
+            yield return null;
+        }
+
+        deathCanvasGroup.alpha = 1f;
+
+        Time.timeScale = 0f;
     }
 }

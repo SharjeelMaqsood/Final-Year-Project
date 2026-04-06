@@ -661,11 +661,42 @@ Transform:
   m_GameObject: {fileID: 296721018}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2534013, y: -0.000000009781736, z: 0.0000000025623366, w: 0.9673613}
-  m_LocalPosition: {x: 437.8208, y: 54.727932, z: 345.94238}
+  m_LocalPosition: {x: 438.08563, y: 57.961807, z: 345.95145}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &319964979
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 319964980}
+  m_Layer: 0
+  m_Name: AttackPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &319964980
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319964979}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.0000041536987, y: 1.0000002, z: 1.0000142}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 543450653472417109}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &321333410
 GameObject:
@@ -1277,7 +1308,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sword4_Red
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6909114937707963222, guid: 54c8c9f221349f5478057c6aa027be04, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1405,7 +1437,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91079fb28dd00e94ca84e68662886600, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  maxHealth: 10
+  maxHealth: 50
+  knockbackForce: 5
+  player: {fileID: 0}
 --- !u!95 &724850900 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 7673487250857332701, guid: c98043d57e0190845b790d7b92990bee, type: 3}
@@ -2633,7 +2667,7 @@ Transform:
   m_GameObject: {fileID: 1966838086}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2534013, y: -0.000000009958826, z: 0.0000000032383745, w: 0.9673613}
-  m_LocalPosition: {x: 437.8208, y: 54.727932, z: 345.94238}
+  m_LocalPosition: {x: 438.08563, y: 57.961807, z: 345.95145}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3062,16 +3096,17 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 919132149282324463}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.022382472, y: 0.33518213, z: -0.05776297, w: 0.9401146}
-  m_LocalPosition: {x: 437.68228, y: 51.39391, z: 349.93698}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 438.08405, y: 54.618965, z: 349.9479}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 881076773}
   - {fileID: 1902497889556980906}
   - {fileID: 9124036931426780831}
+  - {fileID: 319964980}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 4.635, y: 39.027, z: -5.389}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &546209301267570145
 GameObject:
   m_ObjectHideFlags: 0
@@ -3323,10 +3358,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 569c52db6da34484f827da51fe1f5efa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
+  attackDamage: 10
+  attackRange: 1.5
+  attackWidth: 1
   attackCooldown: 1
-  hitboxTime: 0.3
   animator: {fileID: 1682080317}
-  hitbox: {fileID: 1757133215}
+  attackPoint: {fileID: 319964980}
 --- !u!114 &919132149282324465
 MonoBehaviour:
   m_ObjectHideFlags: 0

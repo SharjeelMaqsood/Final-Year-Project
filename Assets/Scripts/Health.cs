@@ -5,6 +5,7 @@ using System.Collections;
 
 public class Health : MonoBehaviour
 {
+    private Animator animator;
     [Header("Health")]
     public int maxHealth = 100;
     public int currentHealth;
@@ -31,17 +32,18 @@ public class Health : MonoBehaviour
     void OnEnable()
     {
         controls.Enable();
-        controls.Player.DamageTest.performed += OnDamageTest;
+        
     }
 
     void OnDisable()
     {
-        controls.Player.DamageTest.performed -= OnDamageTest;
+        
         controls.Disable();
     }
 
     void Start()
     {
+        animator = GetComponent<Animator>();    
         dodge = GetComponent<PlayerDodge>();
         controller = GetComponent<Controller>();
 
@@ -59,11 +61,21 @@ public class Health : MonoBehaviour
         ChangeHealth(10);
     }
 
+    void OnDamageTest()
+    {
+        ChangeHealth(10);
+    }
     public void ChangeHealth(int amount)
     {
+        if (animator != null)
+        {
+            animator.SetTrigger("Hit");
+        }
         if (isDead) return;
 
-        // 🛡️ INVINCIBILITY CHECK
+
+       // StartCoroutine(HitPause());
+
         if (dodge != null && dodge.isInvincible)
         {
             Debug.Log("NO DAMAGE (INVINCIBLE)");
@@ -119,5 +131,11 @@ public class Health : MonoBehaviour
         deathCanvasGroup.alpha = 1f;
 
         Time.timeScale = 0f;
+    }
+    IEnumerator HitPause()
+    {
+        Time.timeScale = 0.3f;
+        yield return new WaitForSecondsRealtime(0.03f);
+        Time.timeScale = 1f;
     }
 }
